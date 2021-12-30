@@ -21,16 +21,15 @@ class ErrorHandle:
 
 
     def save_current(self, id):
-        cur = dict()
-        cur['vendor_id'] = id
-        with open(f"data_save/current", "w", encoding='utf-8') as file:
+        cur = int(id[1:])
+        with open(f"../data_save/current", "w", encoding='utf-8') as file:
             file.write(str(cur))
 
     def read_current(self):
-        with open(f"data_save/current", "r") as file:
+        with open(f"../data_save/current", "r") as file:
             x = file.read()
         return eval(x)
 
     def file_checking(self):
-        x = path.isfile('data_save/current')
+        x = path.isfile('../data_save/current')
         return x
