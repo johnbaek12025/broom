@@ -10,9 +10,10 @@ import replace
 from math import ceil
 import multiprocessing as mp
 from multiprocessing import Process, Pool
-from broomstick import data_manager
+from broomstick.data_manager import ErrorHandle, DetailInfo
 from . import list_chunk
 import socket
+from collections import defaultdict
 
 
 class BroomstickManager(object):
@@ -30,11 +31,10 @@ class BroomstickManager(object):
         _name = 'run'
         logger.info(f"{_name} started")
         # url formating
-        handler = data_manager.ErrorHandle()
+        handler = ErrorHandle()
         checking = handler.file_checking()
         if checking:
             current = handler.read_current()
-            print(current)
             if current < self.limit:
                 vendors = [f"A{str(i).zfill(8)}" for i in range(current, self.limit)]
             else:
@@ -66,20 +66,25 @@ class BroomstickManager(object):
                     items = self.distribution_products(products)
                     products_info.extend(items)
 
-                data[vendor_id]= {
+                data[vendor_id] = {
                 "seller_info": seller_info,
                 "products_info": products_info
                 }
+                DetailInfo.print(data)
             except socket.gaierror:
-                handler = data_manager.ErrorHandle()
+                handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
                     handler.data_save(**data)
+                    return data
+
+
             except KeyboardInterrupt:
-                handler = data_manager.ErrorHandle()
+                handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
                     handler.data_save(**data)
+                    return data
         return data
 
     def set_vendor_url(self, vendor_id, page='1'):
