@@ -70,7 +70,6 @@ class BroomstickManager(object):
                 "seller_info": seller_info,
                 "products_info": products_info
                 }
-
             except KeyboardInterrupt:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
