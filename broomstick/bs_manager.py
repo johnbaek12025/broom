@@ -70,7 +70,7 @@ class BroomstickManager(object):
                 "seller_info": seller_info,
                 "products_info": products_info
                 }
-                DetailInfo.print(data)
+                DetailInfo.print(**data)
             except socket.gaierror:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
