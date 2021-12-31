@@ -70,16 +70,16 @@ class BroomstickManager(object):
                 "seller_info": seller_info,
                 "products_info": products_info
                 }
-                DetailInfo.print(**data)
-            except socket.gaierror:
+                # DetailInfo.print(**data)
+
+            except KeyboardInterrupt:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
                     handler.data_save(**data)
                     return data
 
-
-            except KeyboardInterrupt:
+            except Exception:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
@@ -114,7 +114,7 @@ class BroomstickManager(object):
         for p in products:
             product_id = p['productId']
             category_url = self.category_url.format(product_id=product_id)
-            category = self.bring_category_info(category_url)
+            categories = self.bring_category_info(category_url)
             product = {
                 "product_id": p.get('productId', None),
                 'product_name': p.get('title', None),
@@ -123,7 +123,8 @@ class BroomstickManager(object):
                 "img_url": p.get('imageUrl', None),
                 "total_review_count": p.get('reviewRatingCount', 0.0),
                 "product_satisfaction_count": p.get('reviewRatingAverage', 0.0),
-                "category": category,
+                "category_name": categories.get('category_name', []),
+                "category_code": categories.get('category_code', []),
             }
             items.append(product)
         if items:
