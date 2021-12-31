@@ -1,3 +1,4 @@
+import os
 
 class DetailInfo:
     def __init__(self):
@@ -31,4 +32,4 @@ class ErrorHandle:
 
     def file_checking(self):
         x = os.path.isfile('../data_save/current')
-        return x
+
