@@ -70,7 +70,11 @@ class BroomstickManager(object):
                 "seller_info": seller_info,
                 "products_info": products_info
                 }
+<<<<<<< HEAD
                 # DetailInfo.print(**data)
+=======
+                DetailInfo.print(**data)
+>>>>>>> 1706ec6ed178e9b86fc196850edba5f8ab7c7c94
 
             except KeyboardInterrupt:
                 handler = ErrorHandle()
@@ -79,7 +83,11 @@ class BroomstickManager(object):
                     handler.data_save(**data)
                     return data
 
+<<<<<<< HEAD
             except Exception:
+=======
+            except:
+>>>>>>> 1706ec6ed178e9b86fc196850edba5f8ab7c7c94
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
