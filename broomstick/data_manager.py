@@ -1,4 +1,5 @@
 import os
+import json
 
 class DetailInfo:
     def __init__(self):
@@ -17,8 +18,9 @@ class ErrorHandle:
     def data_save(self, **kwargs):
         for key in kwargs:
             print(kwargs[key])
-            with open(f"../data_save/{key}", "w", encoding='utf-8') as file:
-                file.write(str(kwargs[key]))
+            with open(f"../data_save/{key}", "w", encoding='utf-8-sig') as file:
+                x = json.dumps(kwargs[key], ensure_ascii=False)
+                file.write(str(x))
 
     def save_current(self, id):
         cur = int(id[1:])

@@ -41,49 +41,66 @@ class BroomstickManager(object):
                 vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
         else:
             vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
-        data = self.get_data(vendors)
+        data = self.set_data(vendors)
         handler.data_save(**data)
 
-    def get_data(self, vendors):
-        data = dict()
+    def set_data(self, vendors):
         for vendor_id in vendors:
             try:
-                products = self.set_vendor_url(vendor_id=vendor_id)
-                if not products:
-                    continue
-                print(vendor_id)
-                product_id = products[0]['productId']
-                item_id = products[0]['itemId']
-                vendor_item_id = products[0]['vendorItemId']
-                product_url = self.product_url.format(product_id=product_id, item_id=item_id, vendor_item_id=vendor_item_id)
-                seller_info = self.bring_seller_info(product_url, vendor_id)
-                products_info = []
-                pages = ceil(seller_info['product_count'] / 30)
-                for page in range(1, pages+1):
-                    products = self.set_vendor_url(vendor_id=vendor_id, page=page)
-                    if not products:
-                        break
-                    items = self.distribution_products(products)
-                    products_info.extend(items)
-
-                data[vendor_id] = {
-                "seller_info": seller_info,
-                "products_info": products_info
-                }
+                data = self.vendor_data(vendor_id)
             except KeyboardInterrupt:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
                     handler.data_save(**data)
                     return data
-
             except Exception:
                 handler = ErrorHandle()
                 handler.save_current(vendor_id)
                 if data:
                     handler.data_save(**data)
                     return data
+            else:
+                if not data:
+                    continue
+
         return data
+
+    def vendor_data(self, vendor_id):
+        data = dict()
+        products = self.set_vendor_url(vendor_id=vendor_id)
+        if not products:
+            return None
+        print(vendor_id)
+        set_product = self.set_valdation_info(products)
+        product_url = self.product_url.format(product_id=set_product['product_id'], item_id=set_product['item_id'],
+                                              vendor_item_id=set_product['vendor_item_id'])
+        seller_info = self.bring_seller_info(product_url, vendor_id)
+        products_info = []
+        pages = ceil(seller_info['product_count'] / 30)
+        for page in range(1, pages + 1):
+            products = self.set_vendor_url(vendor_id=vendor_id, page=page)
+            if not products:
+                break
+            items = self.distribution_products(products)
+            products_info.extend(items)
+
+        data[vendor_id] = {
+            "seller_info": seller_info,
+            "products_info": products_info
+        }
+        return data
+
+    def set_valdation_info(self, products):
+        id = dict()
+        for product in products:
+            if product['rocketMerchant']:
+                continue
+            id['product_id'] = product['productId']
+            id['item_id'] = product['itemId']
+            id['vendor_item_id'] = product['vendorItemId']
+            break
+        return id
 
     def set_vendor_url(self, vendor_id, page='1'):
         _name = 'set_vendor_url'
