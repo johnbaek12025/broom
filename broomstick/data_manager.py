@@ -18,7 +18,7 @@ class ErrorHandle:
     def data_save(self, **kwargs):
         for key in kwargs:
             print(kwargs[key])
-            with open(f"../data_save/{key}", "w", encoding='utf-8-sig') as file:
+            with open(f"../data_save/{key}.json", "w", encoding='utf-8-sig') as file:
                 x = json.dumps(kwargs[key], ensure_ascii=False)
                 file.write(str(x))
 

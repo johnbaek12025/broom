@@ -42,32 +42,32 @@ class BroomstickManager(object):
         else:
             vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
         data = self.set_data(vendors)
+        print(data)
         handler.data_save(**data)
 
     def set_data(self, vendors):
+        data = dict()
         for vendor_id in vendors:
             try:
-                data = self.vendor_data(vendor_id)
+                details = self.vendor_data(vendor_id)
             except KeyboardInterrupt:
-                handler = ErrorHandle()
-                handler.save_current(vendor_id)
-                if data:
-                    handler.data_save(**data)
-                    return data
-            except Exception:
-                handler = ErrorHandle()
-                handler.save_current(vendor_id)
-                if data:
-                    handler.data_save(**data)
-                    return data
+                print('-------------------KeyboardInterrupt')
+                logger.info(f"KeyboardInterrupt")
+                break
+            except Exception as e:
+                print(f"{e} 발생")
+                logger.info(f"error {e}")
+                break
             else:
-                if not data:
+                if not details:
                     continue
+                data[vendor_id] = details
 
+        handler = ErrorHandle()
+        handler.save_current(vendor_id)
         return data
 
     def vendor_data(self, vendor_id):
-        data = dict()
         products = self.set_vendor_url(vendor_id=vendor_id)
         if not products:
             return None
@@ -85,7 +85,7 @@ class BroomstickManager(object):
             items = self.distribution_products(products)
             products_info.extend(items)
 
-        data[vendor_id] = {
+        data = {
             "seller_info": seller_info,
             "products_info": products_info
         }
@@ -135,11 +135,12 @@ class BroomstickManager(object):
                 'product_name': p.get('title', None),
                 "sale_price": p.get('originalPrice', None),
                 "discounted_sale_price": p.get('salePrice', None),
-                "img_url": p.get('imageUrl', None),
-                "total_review_count": p.get('reviewRatingCount', 0.0),
-                "product_satisfaction_count": p.get('reviewRatingAverage', 0.0),
-                "category_name": categories.get('category_name', []),
-                "category_code": categories.get('category_code', []),
+                "representative_image_url": p.get('imageUrl', None),
+                "product_review_count": {
+                    "total_review_count": p.get('reviewRatingCount', 0.0),
+                    "product_satisfaction_count": p.get('reviewRatingAverage', 0.0)
+                },
+                "category": categories,
             }
             items.append(product)
         if items:
@@ -151,22 +152,17 @@ class BroomstickManager(object):
     def bring_category_info(self, category_url):
         _name = 'bring_category_info'
         logger.info(f"{_name} started")
+        category = dict()
         info = self.status_validation(category_url, func_name=_name)
         data = bf(info, 'html.parser')
         a = data.find_all('a', {'class': 'breadcrumb-link'}, href=True, title=True)
-        category_name = {}
-        category_code = {}
         name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
         code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
         for i, b in enumerate(a):
             code = re.sub(r'\D', '', b['href'])
             name = b['title']
-            category_name[name_num[i]] = name
-            category_code[code_num[i]] = code
-        category = {
-            'category_name': category_name,
-            'category_code': category_code
-        }
+            category[name_num[i]] = name
+            category[code_num[i]] = int(code)
         return category
 
     def get_products_count(self, vendor_id):
