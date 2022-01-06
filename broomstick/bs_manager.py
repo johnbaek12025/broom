@@ -14,6 +14,7 @@ from broomstick.data_manager import ErrorHandle, DetailInfo
 from . import list_chunk
 import socket
 from collections import defaultdict
+import traceback
 
 
 class BroomstickManager(object):
@@ -54,9 +55,10 @@ class BroomstickManager(object):
                 print('-------------------KeyboardInterrupt')
                 logger.info(f"KeyboardInterrupt")
                 break
-            except Exception as e:
-                print(f"{e} 발생")
-                logger.info(f"error {e}")
+            except Exception:
+                x = traceback.format_exc()
+                print(f"{x}")
+                logger.info(f"error {x}")
                 break
             else:
                 if not details:
@@ -70,9 +72,13 @@ class BroomstickManager(object):
     def vendor_data(self, vendor_id):
         products = self.set_vendor_url(vendor_id=vendor_id)
         if not products:
+            # vendor is registered but there is no information
             return None
         print(vendor_id)
         set_product = self.set_valdation_info(products)
+        if not set_product:
+            # vendor's item is only one and this vendor changed to coupang
+            return None
         product_url = self.product_url.format(product_id=set_product['product_id'], item_id=set_product['item_id'],
                                               vendor_item_id=set_product['vendor_item_id'])
         seller_info = self.bring_seller_info(product_url, vendor_id)
@@ -82,7 +88,7 @@ class BroomstickManager(object):
             products = self.set_vendor_url(vendor_id=vendor_id, page=page)
             if not products:
                 break
-            items = self.distribution_products(products)
+            items = self.distribution_products(vendor_id, products)
             products_info.extend(items)
 
         data = {
@@ -92,15 +98,15 @@ class BroomstickManager(object):
         return data
 
     def set_valdation_info(self, products):
-        id = dict()
+        p_id = dict()
         for product in products:
             if product['rocketMerchant']:
                 continue
-            id['product_id'] = product['productId']
-            id['item_id'] = product['itemId']
-            id['vendor_item_id'] = product['vendorItemId']
+            p_id['product_id'] = product['productId']
+            p_id['item_id'] = product['itemId']
+            p_id['vendor_item_id'] = product['vendorItemId']
             break
-        return id
+        return p_id
 
     def set_vendor_url(self, vendor_id, page='1'):
         _name = 'set_vendor_url'
@@ -122,7 +128,11 @@ class BroomstickManager(object):
 
 
 
-    def distribution_products(self, products):
+    def distribution_products(self, vendor_id, products):
+        def get_last_code(category):
+            last_key = list(category)[-1]
+            return category[last_key]
+
         _name = 'bring_product_info'
         logger.info(f"{_name} started")
         items = []
@@ -130,17 +140,20 @@ class BroomstickManager(object):
             product_id = p['productId']
             category_url = self.category_url.format(product_id=product_id)
             categories = self.bring_category_info(category_url)
+            if not categories:
+                continue
+            last_code = get_last_code(categories)
             product = {
-                "product_id": p.get('productId', None),
-                'product_name': p.get('title', None),
+                "id": p.get('productId', None),
+                'name': p.get('title', None),
                 "sale_price": p.get('originalPrice', None),
                 "discounted_sale_price": p.get('salePrice', None),
                 "representative_image_url": p.get('imageUrl', None),
-                "product_review_count": {
-                    "total_review_count": p.get('reviewRatingCount', 0.0),
-                    "product_satisfaction_count": p.get('reviewRatingAverage', 0.0)
-                },
-                "category": categories,
+                "total_review_count": p.get('reviewRatingCount', 0.0),
+                "product_satisfaction_count": p.get('reviewRatingAverage', 0.0),
+                "seller": vendor_id,
+                "category": last_code,
+                "category_info": categories,
             }
             items.append(product)
         if items:
