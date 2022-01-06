@@ -141,6 +141,7 @@ class BroomstickManager(object):
             category_url = self.category_url.format(product_id=product_id)
             categories = self.bring_category_info(category_url)
             if not categories:
+                # if there is no category information of the product
                 continue
             last_code = get_last_code(categories)
             product = {
