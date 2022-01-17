@@ -42,6 +42,7 @@ class BroomstickManager(object):
                 vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
         else:
             vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
+        # vendors = ['A00005082']
         data = self.set_data(vendors)
         print(data)
         handler.data_save(**data)
@@ -89,6 +90,8 @@ class BroomstickManager(object):
             if not products:
                 break
             items = self.distribution_products(vendor_id, products)
+            if not items:
+                continue
             products_info.extend(items)
 
         data = {
@@ -168,16 +171,22 @@ class BroomstickManager(object):
         logger.info(f"{_name} started")
         category = dict()
         info = self.status_validation(category_url, func_name=_name)
-        data = bf(info, 'html.parser')
-        a = data.find_all('a', {'class': 'breadcrumb-link'}, href=True, title=True)
-        name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
-        code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
-        for i, b in enumerate(a):
-            code = re.sub(r'\D', '', b['href'])
-            name = b['title']
-            category[name_num[i]] = name
-            category[code_num[i]] = int(code)
-        return category
+        try:
+            data = bf(info, 'html.parser')
+        except TypeError:
+            logger.info(f'generated Exception of TypeError because of html_parser')
+            time.sleep(3)
+            data = bf(info, 'html.parser')
+        finally:
+            a = data.find_all('a', {'class': 'breadcrumb-link'}, href=True, title=True)
+            name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
+            code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
+            for i, b in enumerate(a):
+                code = re.sub(r'\D', '', b['href'])
+                name = b['title']
+                category[name_num[i]] = name
+                category[code_num[i]] = int(code)
+            return category
 
     def get_products_count(self, vendor_id):
         _name = 'get_products_count'

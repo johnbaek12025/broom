@@ -1,5 +1,3 @@
-
-# Copyright 2021 ThinkPool, all rights reserved
 """
 """
 
