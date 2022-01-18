@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 
 class DetailInfo:
     def __init__(self):
@@ -14,7 +15,10 @@ class DetailInfo:
             print(f"[{i}]: {var}")
 
 
-class ErrorHandle:
+class DataHandler:
+    def __init__(self, post_url):
+        self.post_url = post_url
+
     def data_save(self, **kwargs):
         for key in kwargs:
             print(kwargs[key])
