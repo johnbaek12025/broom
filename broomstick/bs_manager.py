@@ -43,14 +43,13 @@ class BroomstickManager(object):
                 vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
         else:
             vendors = [f"A{str(i).zfill(8)}" for i in range(1, self.limit)]
-        # vendors = ['A00005082']
-        data = self.set_data(vendors)
-        print(data)
-        self.handler.data_save(**data)
+        # vendors = ['A00020610']
+        self.set_data(vendors)
+
 
     def set_data(self, vendors):
-        data = dict()
         for vendor_id in vendors:
+            data = dict()
             try:
                 details = self.vendor_data(vendor_id)
             except KeyboardInterrupt:
@@ -66,9 +65,9 @@ class BroomstickManager(object):
                 if not details:
                     continue
                 data[vendor_id] = details
-
+                self.handler.data_save(**data)
         self.handler.save_current(vendor_id)
-        return data
+
 
     def vendor_data(self, vendor_id):
         products = self.set_vendor_url(vendor_id=vendor_id)
@@ -171,22 +170,16 @@ class BroomstickManager(object):
         logger.info(f"{_name} started")
         category = dict()
         info = self.status_validation(category_url, func_name=_name)
-        try:
-            data = bf(info, 'html.parser')
-        except TypeError:
-            logger.info(f'generated Exception of TypeError because of html_parser')
-            time.sleep(3)
-            data = bf(info, 'html.parser')
-        finally:
-            a = data.find_all('a', {'class': 'breadcrumb-link'}, href=True, title=True)
-            name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
-            code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
-            for i, b in enumerate(a):
-                code = re.sub(r'\D', '', b['href'])
-                name = b['title']
-                category[name_num[i]] = name
-                category[code_num[i]] = int(code)
-            return category
+        data = bf(info, 'html.parser')
+        a = data.find_all('a', {'class': 'breadcrumb-link'}, href=True, title=True)
+        name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
+        code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
+        for i, b in enumerate(a):
+            code = re.sub(r'\D', '', b['href'])
+            name = b['title']
+            category[name_num[i]] = name
+            category[code_num[i]] = int(code)
+        return category
 
     def get_products_count(self, vendor_id):
         _name = 'get_products_count'
@@ -222,6 +215,10 @@ class BroomstickManager(object):
         logger.info(f"{_name} is working for {func_name}")
         response = requests.get(url, headers=self.header)
         status = response.status_code
+        while status != 200:
+            response = requests.get(url, headers=self.header)
+            status = response.status_code
+            time.sleep(1)
 
         if status == 200:
             try:
