@@ -7,6 +7,5 @@ log/
 data_save/
 test.py
 test1.py
-manipulation.py
 *.xlsx
 *.bat
