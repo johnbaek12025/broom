@@ -1,0 +1,12 @@
+*.pyc
+.idea/
+__pycache__/
+cfg/
+venv/
+log/
+data_save/
+test.py
+test1.py
+manipulation.py
+*.xlsx
+*.bat

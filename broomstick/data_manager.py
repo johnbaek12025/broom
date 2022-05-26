@@ -27,11 +27,11 @@ class DataHandler:
         for key in kwargs:
             # key is vendor_id
             # key is dict{seller_info: {}, products_info: [{}]}
-            print(kwargs[key])
+            # print(kwargs[key])
             with open(f"../data_save/{key}.json", "w", encoding='utf-8-sig') as file:
                 x = json.dumps(kwargs[key], ensure_ascii=False)
                 file.write(str(x))
-            self.post_request(kwargs[key])
+            # self.post_request(kwargs[key])
 
     def post_request(self, data):
         _name = 'post_request'

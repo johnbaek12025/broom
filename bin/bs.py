@@ -26,7 +26,6 @@ if __name__ == '__main__':
     config_dict['app_name'] = __appname__
     log_dict = config_dict.get('log', {})
     log_file_name = f"{options.content}.log"
-
     broomstick.setup_logging(appname=__appname__, appvers=__version__,
                      filename=log_file_name, dirname=options.log_dir,
                      debug=options.debug, log_dict=log_dict,
