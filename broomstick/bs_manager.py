@@ -22,22 +22,11 @@ import traceback
 class BroomstickManager(object):
 
     def __init__(self, config_dict):
-        logger.info("broomstick started")
-        self.user_agent = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            # 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
-            # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36',
-            # 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-            # 'Mozilla/5.0 (Linux; Android 11; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Mobile Safari/537.36'
-        ]
-        self.header = {
-            "User-Agent": random.choice(self.user_agent),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",            
-            "Cookie": '''PCID=51829479347949486589994; MARKETID=51829479347949486589994; sid=aa65fefcabf8446e98bcb0f5567b751ea66f3fd3; FUN="{'search':[{'reqUrl':'/search.pang','isValid':true}]}"; searchKeyword=%EC%97%90%EC%96%B4%EB%A1%9C%20%ED%94%84%EB%A0%88%EC%8A%A4%7C%EC%97%90%EC%96%B4%EB%A1%9C%20%ED%94%84%EB%A0%88%EC%8A%A4%20%EC%BB%A4%ED%94%BC%7C%EC%97%90%EC%96%B4%ED%94%84%EB%A0%88%EC%86%8C%7C%EC%8A%A4%EB%8B%88%EC%BB%A4%EC%8A%A4%7C%EC%8A%A4%EB%8B%88%EC%BB%A4%EC%A6%88%20%EC%B4%88%EC%BD%94%EB%B0%94%7C%EB%8B%A5%ED%84%B0%EC%9C%A0%7C%EC%BB%A4%ED%94%BC%EB%B9%88%7C%EC%BB%A4%ED%94%BC%20%EC%97%90%EC%96%B4%ED%94%84%EB%A0%88%EC%8A%A4%7C%EA%B2%AC%EA%B3%BC%EB%A5%98; searchKeywordType=%7B%22%EC%97%90%EC%96%B4%EB%A1%9C%20%ED%94%84%EB%A0%88%EC%8A%A4%22%3A0%7D%7C%7B%22%EC%97%90%EC%96%B4%EB%A1%9C%20%ED%94%84%EB%A0%88%EC%8A%A4%20%EC%BB%A4%ED%94%BC%22%3A0%7D%7C%7B%22%EC%97%90%EC%96%B4%ED%94%84%EB%A0%88%EC%86%8C%22%3A0%7D%7C%7B%22%EC%8A%A4%EB%8B%88%EC%BB%A4%EC%8A%A4%22%3A0%7D%7C%7B%22%EC%8A%A4%EB%8B%88%EC%BB%A4%EC%A6%88%20%EC%B4%88%EC%BD%94%EB%B0%94%22%3A0%7D%7C%7B%22%EB%8B%A5%ED%84%B0%EC%9C%A0%22%3A0%7D%7C%7B%22%EC%BB%A4%ED%94%BC%EB%B9%88%22%3A0%7D%7C%7B%22%EC%BB%A4%ED%94%BC%20%EC%97%90%EC%96%B4%ED%94%84%EB%A0%88%EC%8A%A4%22%3A0%7D%7C%7B%22%EA%B2%AC%EA%B3%BC%EB%A5%98%22%3A0%7D; x-coupang-accept-language=ko_KR; X-CP-PT-locale=ko_KR; cto_bundle=XEJ3819LTFVYYnhKWnAyJTJGTHZmWU1QdFJiRXl3UCUyRjVjd0gxbk5US2p1VWpjNkJRbkdENWlxbURGMEx4T3NhbHZhblNtSW9kTW02R2trUSUyQm5Ta3NKQ0xtYVlOMGVWTldvaHZsdTlDdmslMkJyeFFlb096ZGNEJTJCSE9EQ1JBeGw3Q1NuT0IxWE5RaGg1RTltaGpTVFV4dHhCa1g4Y3NBJTNEJTNE; ak_bmsc=B93FF9B76F02B9A43FB1607963A383CC~000000000000000000000000000000~YAAQjgI1Fzgjg+KAAQAAD+1Y9Q9b1TToSrCB9FuToYX+7MiuSFPqNjIhwO3yl8+7eCsSNJURRvj7Eupv1mADvQwyH6R/K+8gREpF+qLlHRwqTrsDj+/3IF2xFXoKtbOZSqVpyyiV1JbR6TQ9eCJDemU/MCqa+cKEn3+tCGREHa/6e8ApxK2Jt1QyUzO+BVMN35IF6pRLW10bgWkU5qLhFqts91t329+Xdp0rtzeIUn3MFv+0rqjuvW69TxZuI8CHnfkxLts/+Cknft6rNlZ1Tem+7eTrRHhq1F0FsY55bVccvfgIIddl3y4O/8MBBdRjr2R32PJRdRllzRi/Gv0+DiTPDldvr1zx7/a4rxKb27o54+oM1Pc02s9oTvXnYMo=; bm_sz=F7901A85CD7B5BFCEADA7C96CDF83524~YAAQjgI1Fzkjg+KAAQAAD+1Y9Q/IhgGhqp4yVHhZnVGIOU0cm7mLpHibHB33CxBrRDPkucmbr7JV/D9IWE55fWNtVoJ2sdXsfp95fX4v33hnHVtYrr8UjOUE9UeTkRQhscB55ncFIj9Fs3jNyJCg/3vIOTFHWu2jjZNymaejomTXEiNNzs7rQf3wWr0KwXdYzlHxT8myU7rurKG614qVgpgIckyBXn3sK/Oeh3BQb/31nvTbWzt3k7AQety1ZYnM3nnNbXoJe1zwJyV+smCVpB99r3Jo4ARA3G99t2L3LSPSM9xZ~3159609~3486020; _abck=FFFEA3B0DAE31E8F4B4521FED9002C7C~-1~YAAQBiPJF5KrA9+AAQAA/pBZ9QfCu386G6nBIZzFNZOLUOAurmAazQtGvq5pV9XknzO2o1BlsyJAoOvrCMdaAvK+SD6i7C6hkIGYWOYN/3qpVth4orf1DVa9UCMdFtQIuLWueILrS6Aq9tMsOJZZyWd7TvJu1gpLKyXq82KyLAuPmC3XSTF6j+Qz8JHpIlW4mCJLnKjBfV2ruLAGuxsx87e/R7w2jSLhTy73MlaT2IO0w1ikeluALsQCGZ84B9G2QOGAmXBjTvGB9chAwO7/E5qoRepXM02uxtJbXtGZ/AzimKH9+4omBuvK3R/fo2NYNdpJtzrv8ov58C42kDGHO4wSLw/uRGIk4VFI1szouUHH+Gd3UoOjvHsbWcy0blq7WvlqGENi7g3WKT/n5qNChs74fw1C0DdyLwY=~-1~-1~-1; bm_sv=41348269395494DEDB6CF93E61AD55CB~YAAQBiPJF5OrA9+AAQAA/pBZ9Q+iv1BIIUNu/z+myNKvhQrsp9+OMLAt2MOAm/KRfMVnG/jDlzSyN2DTujumj1Y8juvM26LD61wKCjUEdUjUceiE7vyRjsmueUScEY2n6e2NcZca939Usb/xapmUtSFQaJfweDkCw7Eud2qaVDWc/b2b3+qFJVUbui86lEPDfZKI/iCYlTexp4hHz/mJ261o2qb6sY+Xu0ov8ls/SwGn47V7oi6NeWRQ024iuf4M8g==~1'''
+        logger.info("broomstick started")        
+        self.header = {            
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36",
             },
-            
+        self.session = None            
         self.product_url = config_dict["broomstick_manager"]['url_product']
         self.category_url = config_dict["broomstick_manager"]['url_category']
         self.vendor_url = config_dict["broomstick_manager"]['url_vendor']
@@ -45,21 +34,41 @@ class BroomstickManager(object):
         self.limit = 100000000
         self.handler = DataHandler(self.post_url)
 
+    def set_session(self):
+        s = requests.session()
+        s.headers.update(self.header)
+        s.cookies.set(**{"domain": ".coupang.com", 
+                    "value": "51829479347949486589994", 
+                    "path": "/",                 
+                    "name": "PCID",
+                    "rest": {"httpOnly": False, "sameSite": False},})
+        s.cookies.set(**{ "name": "MARKETID",
+                    "value": "51829479347949486589994",
+                    "path": "/",   
+                    "domain": ".coupang.com", 
+                    "rest": {"httpOnly": True, "sameSite": None, "secure": True},})            
+        s.cookies.set(**{"name": "sid",
+                    "value": "a0438b4751a84b55838f254724e60773d89f10e0",            
+                    "path": "/",   
+                    "domain": ".coupang.com", 
+                    "rest": {"httpOnly": False, "sameSite": '', "secure": False},})    
+        return s
+
     def run(self):
         _name = 'run'
         logger.info(f"{_name} started")
         # url formating
-        # checking = self.handler.file_checking()
-        # signal = 'A'
-        # if checking:
-        #     current = self.handler.read_current()
-        #     if current < self.limit:
-        #         vendor_nums = [i for i in range(current, self.limit)]
-        #     else:
-        #         vendor_nums = [i for i in range(1, self.limit)]
-        # else:
-        #     vendor_nums = [i for i in range(1, self.limit)]
-        vendor_nums = [202]
+        self.session = self.set_session()
+        checking = self.handler.file_checking()        
+        if checking:
+            current = self.handler.read_current()
+            if current < self.limit:
+                vendor_nums = [i for i in range(current, self.limit)]
+            else:
+                vendor_nums = [i for i in range(1, self.limit)]
+        else:
+            vendor_nums = [i for i in range(1, self.limit)]
+        # vendor_nums = [202]                
         self.set_data(vendor_nums)
 
 
@@ -239,11 +248,11 @@ class BroomstickManager(object):
     def status_validation(self, url, func_name):
         _name = "status_validation"
         time.sleep(2)
-        logger.info(f"{_name} is working for {url} of {func_name}")
-        status = 100
-
+        logger.info(f"{_name} is working for {url} of {func_name}")        
+        response = self.session.get(url) 
+        status = response.status_code
         while status != 200:            
-            response = requests.get(url, headers=self.header) 
+            response = self.session.get(url)
             print(response)           
             status = response.status_code
             time.sleep(3)

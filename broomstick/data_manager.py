@@ -18,9 +18,6 @@ class DetailInfo:
 
 
 class DataHandler:
-    def __init__(self, post_url):
-        self.post_url = post_url
-
     def data_save(self, **kwargs):
         _name = 'data_save'
         logger.info(f"broomstick data saving in {self.__class__.__name__}.{_name}")
@@ -28,9 +25,10 @@ class DataHandler:
             # key is vendor_id
             # key is dict{seller_info: {}, products_info: [{}]}
             # print(kwargs[key])
+            print(key)
             with open(f"../data_save/{key}.json", "w", encoding='utf-8-sig') as file:
                 x = json.dumps(kwargs[key], ensure_ascii=False)
-                file.write(str(x))
+                file.write(str(x))            
             # self.post_request(kwargs[key])
 
     def post_request(self, data):

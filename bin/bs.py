@@ -31,9 +31,9 @@ if __name__ == '__main__':
                      debug=options.debug, log_dict=log_dict,
                      emit_platform_info=True)
 
-    if options.content == 'broomstick':
-        from broomstick.bs_manager import BroomstickManager
-        bm = BroomstickManager(config_dict)
-        bm.run()
+    if options.content == 'coupang':
+        from broomstick.bs_coupang import BroomstickCoupang
+        bm = BroomstickCoupang(config_dict)
+        bm.main()
     else:
         print('Content 이름 확인')

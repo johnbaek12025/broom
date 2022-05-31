@@ -209,19 +209,24 @@ def read_json(path):
                 continue
             info_dict.update(call_info)
             info_dict['수령자'] = data_dict[key]['representative_name']
-            f_address = data_dict['seller_info']['address'].replace('&amp;', '').replace('sim;', '').replace('&nbsp;', '').replace('&quot;', '')            
+            f_address = data_dict['seller_info']['address'].replace('&amp;', '').replace('sim;', '').replace('&nbsp;', '').replace('&quot;', '')
             r2 = re.sub(r'\B\-', '', f_address)
-            # r3 = re.sub(r'[\d]+∼[\d]+', '', r2)            
-            province, address = split_province(r2, data_dict['seller_info']['seller_id'])            
-            
-            area, address = split_area(address, data_dict['seller_info']['seller_id'])                        
+            # r3 = re.sub(r'[\d]+∼[\d]+', '', r2)
+            province, address = split_province(r2, data_dict['seller_info']['seller_id'])                        
+            area, address = split_area(address, data_dict['seller_info']['seller_id'])            
             village, address = split_village(address, data_dict['seller_info']['seller_id'])
             # address = re.sub('\d+~\d+', '', address)
-            spot, address = split_dong_ho_f(address)            
+            spot, address = split_dong_ho_f(address)                      
             address = re.sub('\s', '', address, 1)
             address = re.sub('\s', '', address, 1)            
             # print(f"{address}  /  {data_dict['seller_info']['seller_id']}")
-            detail, address = split_detail(address)            
+            detail, address = split_detail(address)
+            print(province)
+            print(area)
+            print(village)
+            print(detail)
+            print(spot)
+            print(address)
             # print(f"{address}  /  {data_dict['seller_info']['seller_id']} {gil}")
             info_dict["vendor_id"] = data_dict['seller_info']['seller_id']
             info_dict['도로명 주소'] = f"{province} {area} {village} {detail}"
@@ -255,12 +260,12 @@ if __name__ == '__main__':
         # elif i > 30000:
         #     break
         data = read_json(d)        
-        
-        for key in data:
-            col = ordered_list.index(key)
-            ws.write(row, col, data[key])
-        row += 1
-        # time.sleep(1)
+        print('-------------------------')
+        # for key in data:
+        #     col = ordered_list.index(key)
+        #     ws.write(row, col, data[key])
+        # row += 1
+        time.sleep(1)
         # data_list.append(data)        
-    wb.close()
-    sys.stdout.close()    
+    # wb.close()
+    # sys.stdout.close()    
