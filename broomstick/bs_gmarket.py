@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup as bf
 import json
 import numpy
+from broomstick import settings
 from broomstick.data_manager import DataHandler, DetailInfo
 import re
 import logging
@@ -18,7 +19,7 @@ class BroomstickGmarket(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_gmarket').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids()
-        # self.seller_ids = {'geniefarm1'}
+        # self.seller_ids = {'fancyhouse2019'}
         self.seller_url = config_dict.get('broomstick_gmarket').get('seller_url')
         self.product_url = config_dict.get('broomstick_gmarket').get('product_url')
         self.review_url = config_dict.get('broomstick_gmarket').get('review_url')
@@ -76,9 +77,9 @@ class BroomstickGmarket(object):
             if not seller_info:
                 continue
             product_url = self.product_url.format(seller_id=id)            
-            product_links = self.collect_products_link(product_url)            
+            product_links = self.collect_products_link(product_url)
             if not product_links:
-                continue
+                product_links = self.collect_products_link_table(product_url)
             products_info = self.collect_products_info(id, product_links)
             data[f"g_{id}"] = {
                 "seller_info": seller_info,
@@ -106,10 +107,12 @@ class BroomstickGmarket(object):
         _name = "bring_seller_info"
         info = self.status_validation(url, _name)
         data = bf(info, 'html.parser')        
-        ul = data.find('ul', {'class': 'type2'})
+        for i in range(1, 4):
+            ul = data.find('ul', {'class': f'type{i}'})      
+            if ul:
+                break
         if not ul:
-            ul = data.find('ul', {'class': 'type1'})        
-
+            return None   
         a_tags = ul.find_all('a', href=True)
         p_links = []
         for i, a in enumerate(a_tags):
@@ -118,13 +121,25 @@ class BroomstickGmarket(object):
             p_links.append(a['href'])
         return p_links
 
+    def collect_products_link_table(self, url):
+        _name = "collect_products_link_table"
+        info = self.status_validation(url, _name)
+        data = bf(info, 'html.parser')        
+        p_tag = data.find_all('p', {'class': 'img'})
+        p_links = []
+        for i, p in enumerate(p_tag):
+            if i == 10:
+                break
+            p_links.append(p.a['href'])
+        return p_links
+
     def collect_products_info(self, seller_id, links):
         def get_last_code(category):
             last_key = list(category)[-1]
             return category[last_key]
         _name = "collect_products_info"
         products = []
-        for l in links:            
+        for l in links: 
             product_id = re.search('\d+', l).group()            
             info = self.status_validation(l, _name)
             data = bf(info, 'html.parser')          
@@ -160,11 +175,11 @@ class BroomstickGmarket(object):
         post_data = {'goodsCode': product_id}
         info = self.status_validation(self.review_url, _name, post_data)
         data = bf(info, 'html.parser')
-        cont = data.find_all('span', {'class': 'num'})
+        cont = data.find_all('span', {'class': 'num'})        
         review_count = 0
-        for t in cont:
+        for t in cont:          
             num = re.sub('[^0-9]+','',t.text)
-            review_count += int(num)          
+            review_count += int(num)
         return review_count
 
     def set_category(self, data):
