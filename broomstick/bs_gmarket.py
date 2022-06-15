@@ -163,7 +163,8 @@ class BroomstickGmarket(object):
         cont = data.find_all('span', {'class': 'num'})
         review_count = 0
         for t in cont:
-            review_count += int(t.text)
+            num = re.sub('[^0-9]+','',t.text)
+            review_count += int(num)          
         return review_count
 
     def set_category(self, data):
