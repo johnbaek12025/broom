@@ -21,7 +21,7 @@ class BroomstickAuction(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_auction').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids() 
-        self.seller_ids = {"bomannkorea"}
+        # self.seller_ids = {"lucky2000"}
         self.seller_url = config_dict.get('broomstick_auction').get('seller_url')
         self.product_url = config_dict.get('broomstick_auction').get('product_url')
         self.session = None
@@ -51,17 +51,21 @@ class BroomstickAuction(object):
             seller_info = self.bring_seller_info(id, store_info)
             if not seller_info:
                 continue
-            product_url = self.product_url.format(seller_id=id)                   
+            product_url = self.product_url.format(seller_id=id)            
             product_links = self.collect_products_link(product_url, id)
             if not product_links:
-                data[id] = {
+                data[f"a_{id}"] = {
                 "seller_info": seller_info,                
                 }
                 self.handler.data_save(**data)    
                 continue            
-            products_info = self.collect_products_info(id, product_links)                       
+            products_info = self.collect_products_info(id, product_links)
             if not products_info:
-                continue            
+                data[f"a_{id}"] = {
+                "seller_info": seller_info,                
+                }
+                self.handler.data_save(**data)    
+                continue    
             data[f"a_{id}"] = {
                 "seller_info": seller_info,
                 "products_info": products_info
@@ -99,15 +103,18 @@ class BroomstickAuction(object):
         seller_info = {"seller_id": id}
         data = bf(info, 'html.parser')            
         div = data.find('div', {'class': 'seller_info_box'})
+        if not div:
+            return None
         info = div.find_all('dd')
         if not info:
             return None
         if len(info) < 3:
             return None
+        email = re.sub('\s', '', info[-3].text)
         seller_info['represent_name'] = info[0].text
         seller_info['representative_name'] = info[1].text
         seller_info['call_number'] = info[2].text
-        seller_info['email'] = info[-3].text
+        seller_info['email'] = email
         seller_info['business_registration_number'] = info[-2].text
         seller_info['address'] = info[-1].text
         return seller_info
@@ -116,11 +123,12 @@ class BroomstickAuction(object):
         _name = "bring_seller_info"
         info = self.status_validation(url, _name)
         data = bf(info, 'html.parser')                  
-        ul = data.find('ul', {'class': 'type2'})
+        for i in range(1, 4):
+            ul = data.find('ul', {'class': f'type{i}'})      
+            if ul:
+                break
         if not ul:
-            ul = data.find('ul', {'class': 'type1'})
-            if not ul:                
-                return None
+            return None
         a_tags = ul.find_all('a', href=True)
         p_links = []
         for i, a in enumerate(a_tags):
@@ -136,6 +144,7 @@ class BroomstickAuction(object):
         _name = "collect_products_info"
         products = []
         for l in links:
+            print(l)
             product_id = re.search(r'[A-Z][0-9]+', l).group()            
             info = self.status_validation(l, _name)
             data = bf(info, 'html.parser')
@@ -150,14 +159,16 @@ class BroomstickAuction(object):
                 origin_price = ''
             sale_price = data.find('strong', {"class": "price_real"})
             if not sale_price:
-                sale_price = data.find('span', {"class": "monthly_price"})
+                for i in ["monthly_price", "plan_price"]:
+                    sale_price = data.find('span', {"class": i})
+            
             sale_price = re.sub('[^0-9]','',sale_price.text)
             product_name = data.find('h1', {'class': "itemtit"}).text     
             cates = data.find_all('div', {"class": "category_wrap"})
             img_url = data.find('ul', {"class": "viewer"})  
             img = img_url.li.img['src']
-            categories = self.set_category(cates)
-            review_count = self.set_review(data)
+            categories = self.set_category(cates)            
+            review_count = self.set_review(data)            
             if not categories:
                 continue
             last_code = get_last_code(categories)
@@ -183,10 +194,11 @@ class BroomstickAuction(object):
             name = re.sub('더보기\n', '', d.a.text)
             category[name_num[i]] = name
             category[code_num[i]] = int(code)        
-        return 
+        return category
         
     def set_review(self, data):
         review_count = data.find('span', {'id': 'spnTotalItemTalk_display'})
+        review_count = review_count.text
         return review_count
         
     def status_validation(self, url, func_name):
