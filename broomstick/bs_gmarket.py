@@ -19,7 +19,7 @@ class BroomstickGmarket(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_gmarket').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids()
-        # self.seller_ids = {'fancyhouse2019'}
+        # self.seller_ids = {'jiroshop'}
         self.seller_url = config_dict.get('broomstick_gmarket').get('seller_url')
         self.product_url = config_dict.get('broomstick_gmarket').get('product_url')
         self.review_url = config_dict.get('broomstick_gmarket').get('review_url')
@@ -69,6 +69,8 @@ class BroomstickGmarket(object):
         for id in self.seller_ids:
             print(id)
             data = dict()
+            self.here.add(id)
+            self.handler.save_current(self.file_name, self.here)
             store_url = self.seller_url.format(seller_id=id)
             store_info = self.status_validation(store_url, _name)
             if not store_info:
@@ -85,7 +87,7 @@ class BroomstickGmarket(object):
                 "seller_info": seller_info,
                 "products_info": products_info
             }                             
-            self.handler.data_save(**data)    
+            self.handler.data_save(**data)
 
     def bring_seller_info(self, id, info):
         _name = "bring_seller_info"
@@ -104,6 +106,12 @@ class BroomstickGmarket(object):
         return seller_info
 
     def collect_products_link(self, url):
+        def skip_link(info):
+            for i in info:
+                if '스마일 배송' == i['alt']:
+                    return False
+            return True
+
         _name = "bring_seller_info"
         info = self.status_validation(url, _name)
         data = bf(info, 'html.parser')        
@@ -112,13 +120,21 @@ class BroomstickGmarket(object):
             if ul:
                 break
         if not ul:
-            return None   
-        a_tags = ul.find_all('a', href=True)
+            return None        
+        li = ul.find_all('li', {'class': 'normal'})
         p_links = []
-        for i, a in enumerate(a_tags):
-            if i == 10:
-                break
-            p_links.append(a['href'])
+        for l in li:            
+            img_tags = l.div.find_all('img')
+            if img_tags:
+                skip = skip_link(img_tags)
+                if not skip:
+                    continue
+                else:
+                    p_links.append(l.p.a['href'])    
+            else:
+                p_links.append(l.p.a['href'])
+            if len(p_links) == 10:
+                break        
         return p_links
 
     def collect_products_link_table(self, url):
@@ -139,14 +155,16 @@ class BroomstickGmarket(object):
             return category[last_key]
         _name = "collect_products_info"
         products = []
-        for l in links: 
+        for l in links:
             product_id = re.search('\d+', l).group()            
             info = self.status_validation(l, _name)
-            data = bf(info, 'html.parser')          
+            data = bf(info, 'html.parser')
             origin_price = data.find('span', {"class": "price_original"})
             if origin_price:
                 origin_price = re.sub('[^0-9]','',origin_price.text)            
             sale_price = data.find('strong', {"class": "price_real"})
+            if not sale_price:
+                continue
             sale_price = re.sub('[^0-9]','',sale_price.text)
             product_name = data.find('h1', {'class': "itemtit"}).text     
             cates = data.find('div', {"class": "location-navi"})
