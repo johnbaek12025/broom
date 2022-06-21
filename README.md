@@ -1,14 +1,7 @@
 # broomstick
-crawling coupang
+
+crawling coupang, gmarket, auction
    1. 프로그램 설명
-        - this application is for crawling vendor information with vendor's products information in Coupang website.
-          But there is a problem that is, there are so many vendors' id
-          so in this application wanted to use multiprocessing things
-          but because of ip trouble couldn't use
-          so as another option saving vendor_id for saving till which vendor's information is collected
-          then when being stopped while executing after that starting again can start from the stopped position
-          and not yet made db connection so someone wants to collect data in db,
-          should connect from scratch
 
 ## 실행방식
 

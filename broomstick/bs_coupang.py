@@ -18,8 +18,8 @@ class BroomstickCoupang(object):
         self.session = None
         self.product_url = config_dict["broomstick_coupang"]['url_product']
         self.category_url = config_dict["broomstick_coupang"]['url_category']
-        self.vendor_url = config_dict["broomstick_coupang"]['url_vendor']        
-        self.limit = 20290
+        self.vendor_url = config_dict["broomstick_coupang"]['url_vendor']                
+        self.limit = 100000000
         self.handler = DataHandler()
         self.wtime = numpy.arange(0.5, 2, 0.5)
     
@@ -57,12 +57,12 @@ class BroomstickCoupang(object):
                 vendor_nums = [i for i in range(1, self.limit)]
         else:
             vendor_nums = [i for i in range(1, self.limit)]
-        # vendor_nums = [202]
+        # vendor_nums = [1117]
         data = dict()        
         for n in vendor_nums:
             vendor_id = f"A{str(n).zfill(8)}" 
             print(vendor_id)
-            self.handler.save_current(vendor_id)
+            self.handler.save_current(None, vendor_id)
             vendor_url = self.vendor_url.format(vendor_id=vendor_id, page_num='1')
             products_info = self.status_validation(vendor_url, _name)
             if not products_info:

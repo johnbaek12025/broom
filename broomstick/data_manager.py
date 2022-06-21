@@ -47,17 +47,24 @@ class DataHandler:
 
 
 
-    def save_current(self, id):
-        cur = int(id[1:])
-        with open(f"../data_save/current", "w", encoding='utf-8') as file:
+    def save_current(self, file_name, cur):
+        if not file_name:
+            cur = int(cur[1:])
+            file_name = 'current'
+
+        with open(f"../data_save/{file_name}", "w", encoding='utf-8') as file:
             file.write(str(cur))
 
-    def read_current(self):
-        with open(f"../data_save/current", "r") as file:
+    def read_current(self, file_name=None):
+        if not file_name:
+            file_name = 'current'
+        with open(f"../data_save/{file_name}", "r") as file:
             x = file.read()
         return eval(x)
 
-    def file_checking(self):
-        x = os.path.isfile('../data_save/current')
+    def file_checking(self, file_name=None):
+        if not file_name:
+            file_name = 'current'
+        x = os.path.isfile(f'../data_save/{file_name}')
         return x
 

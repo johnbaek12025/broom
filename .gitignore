@@ -10,3 +10,4 @@ test1.py
 *.xlsx
 *.bat
 util/
+*.html
