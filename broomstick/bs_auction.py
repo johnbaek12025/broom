@@ -21,7 +21,7 @@ class BroomstickAuction(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_auction').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids() 
-        # self.seller_ids = {"lucky2000"}
+        # self.seller_ids = {'ccreang'}
         self.seller_url = config_dict.get('broomstick_auction').get('seller_url')
         self.product_url = config_dict.get('broomstick_auction').get('product_url')
         self.session = None
@@ -42,8 +42,7 @@ class BroomstickAuction(object):
         for id in self.seller_ids:
             data = dict() 
             print(id)
-            self.there.add(id)
-            self.handler.save_current(self.file_name, self.there)
+            self.there.add(id)           
             store_url = self.seller_url.format(seller_id=id)
             store_info = self.status_validation(store_url, _name)            
             if not store_info:
@@ -71,6 +70,7 @@ class BroomstickAuction(object):
                 "products_info": products_info
             }                             
             self.handler.data_save(**data)            
+            self.handler.save_current(self.file_name, self.there)
 
     def set_session(self):
         s = requests.session()
@@ -144,7 +144,6 @@ class BroomstickAuction(object):
         _name = "collect_products_info"
         products = []
         for l in links:
-            print(l)
             product_id = re.search(r'[A-Z][0-9]+', l).group()            
             info = self.status_validation(l, _name)
             data = bf(info, 'html.parser')
