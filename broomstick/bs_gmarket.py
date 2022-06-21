@@ -25,7 +25,7 @@ class BroomstickGmarket(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_gmarket').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids()
-        self.seller_ids = {'ghs'}
+        # self.seller_ids = {'ghs'}
         self.seller_url = config_dict.get('broomstick_gmarket').get('seller_url')
         self.product_url = config_dict.get('broomstick_gmarket').get('product_url')
         self.review_url = config_dict.get('broomstick_gmarket').get('review_url')
@@ -74,9 +74,8 @@ class BroomstickGmarket(object):
                 self.seller_ids = self.seller_ids - self.here           
         for id in self.seller_ids:
             print(id)
-            data = dict()
             self.here.add(id)
-            self.handler.save_current(self.file_name, self.here)
+            data = dict()            
             store_url = self.seller_url.format(seller_id=id)
             store_info = self.status_validation(store_url, _name)
             if not store_info:
@@ -99,7 +98,8 @@ class BroomstickGmarket(object):
                 "seller_info": seller_info,
                 "products_info": products_info
             }                             
-            self.handler.data_save(**data)
+            self.handler.data_save(**data)            
+            self.handler.save_current(self.file_name, self.here)
 
     def bring_seller_info(self, id, info):
         _name = "bring_seller_info"
@@ -167,7 +167,7 @@ class BroomstickGmarket(object):
         _name = "collect_products_info"
         products = []
         for l in links:
-            print(l)
+            # print(l)
             product_id = re.search('\d+', l).group()            
             info = self.status_validation(l, _name)
             data = bf(info, 'html.parser')
