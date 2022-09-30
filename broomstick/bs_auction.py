@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup as bf
 import json
 import numpy
-from broomstick.data_manager import DataHandler, DetailInfo
+from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
 
@@ -21,7 +21,7 @@ class BroomstickAuction(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_auction').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids() 
-        # self.seller_ids = {'ccreang'}
+        # self.seller_ids = {'ALJALDDAG'}
         self.seller_url = config_dict.get('broomstick_auction').get('seller_url')
         self.product_url = config_dict.get('broomstick_auction').get('product_url')
         self.session = None
@@ -39,38 +39,44 @@ class BroomstickAuction(object):
             if len(self.there) < len(self.seller_ids):
                 self.seller_ids = self.seller_ids - self.there
                        
-        for id in self.seller_ids:
-            data = dict() 
-            print(id)
-            self.there.add(id)
-            self.handler.save_current(self.file_name, self.there)
-            store_url = self.seller_url.format(seller_id=id)
-            store_info = self.status_validation(store_url, _name)            
-            if not store_info:
+        for id in self.seller_ids:            
+            check = self.get_collecting_data(id)
+            if not check:
                 continue
-            seller_info = self.bring_seller_info(id, store_info)
-            if not seller_info:
-                continue
-            product_url = self.product_url.format(seller_id=id)            
-            product_links = self.collect_products_link(product_url, id)
-            if not product_links:
-                data[f"a_{id}"] = {
-                "seller_info": seller_info,                
-                }
-                self.handler.data_save(**data)    
-                continue            
-            products_info = self.collect_products_info(id, product_links)
-            if not products_info:
-                data[f"a_{id}"] = {
-                "seller_info": seller_info,                
-                }
-                self.handler.data_save(**data)    
-                continue    
+
+    def get_collecting_data(self, id):
+        _name = 'get_collecting_data'
+        data = dict()
+        print(id)
+        self.there.add(id)           
+        store_url = self.seller_url.format(seller_id=id)
+        store_info = self.status_validation(store_url, _name)                       
+        if not store_info:
+            return False            
+        seller_info = self.bring_seller_info(id, store_info)
+        if not seller_info:
+            return False
+        product_url = self.product_url.format(seller_id=id)            
+        product_links = self.collect_products_link(product_url, id)
+        if not product_links:
             data[f"a_{id}"] = {
-                "seller_info": seller_info,
-                "products_info": products_info
-            }                             
-            self.handler.data_save(**data)            
+            "seller_info": seller_info,                
+            }
+            self.handler.data_save(**data)    
+            return False            
+        products_info = self.collect_products_info(id, product_links)
+        if not products_info:
+            data[f"a_{id}"] = {
+            "seller_info": seller_info,                
+            }
+            self.handler.data_save(**data)    
+            return False    
+        data[f"a_{id}"] = {
+            "seller_info": seller_info,
+            "products_info": products_info
+        }                             
+        self.handler.data_save(**data)            
+        self.handler.save_current(self.file_name, self.there)
 
     def set_session(self):
         s = requests.session()
@@ -99,9 +105,10 @@ class BroomstickAuction(object):
         return sellers
 
     def bring_seller_info(self, id, info):
-        _name = "bring_seller_info"        
-        seller_info = {"seller_id": id}
-        data = bf(info, 'html.parser')            
+        _name = "bring_seller_info"                
+        seller_info = {"seller_id": id}        
+        data = bf(info, 'html.parser')        
+        product_count = self.bring_total_products_count(data)
         div = data.find('div', {'class': 'seller_info_box'})
         if not div:
             return None
@@ -117,8 +124,20 @@ class BroomstickAuction(object):
         seller_info['email'] = email
         seller_info['business_registration_number'] = info[-2].text
         seller_info['address'] = info[-1].text
+        seller_info['product_count'] = product_count
         return seller_info
-
+    
+    def bring_total_products_count(self, data):
+        li_tags = data.find_all("li", {"class": "splt_ico"})        
+        product_num = 0
+        for li in li_tags:
+            product_num_text = li.find("span", {"class": "data_num"})            
+            if product_num_text:
+                product_num += int(re.sub('[^0-9]+', '', product_num_text.text))
+            else:
+                product_num += 0
+        return product_num
+        
     def collect_products_link(self, url, id):
         _name = "bring_seller_info"
         info = self.status_validation(url, _name)
@@ -174,10 +193,10 @@ class BroomstickAuction(object):
             products.append({
                 "id": product_id,
                 'name': product_name,
-                "origin_price": origin_price,
-                "discounted_sale_price": sale_price,
+                "origin_price": int(origin_price) if origin_price else 0,
+                "discounted_sale_price": int(sale_price),
                 "representative_image_url": img,
-                "review_count": review_count,
+                "total_review_count": int(review_count),
                 "seller": seller_id,
                 "category": last_code,
                 "category_info": categories,
@@ -198,13 +217,18 @@ class BroomstickAuction(object):
     def set_review(self, data):
         review_count = data.find('span', {'id': 'spnTotalItemTalk_display'})
         review_count = review_count.text
+        review_count = re.sub("[^0-9]+", '', review_count)
         return review_count
         
     def status_validation(self, url, func_name):
         _name = "status_validation"
         logger.info(f"{_name} started for {func_name}")
         time.sleep(random.choice(self.wtime))
-        res = self.session.get(url)        
+        try:
+            res = self.session.get(url)
+        except:
+            time.sleep(2)
+            res = self.session.get(url)
         status = res.status_code
         if status == 200:            
             try:                

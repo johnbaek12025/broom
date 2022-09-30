@@ -1,4 +1,3 @@
-
 from audioop import add
 import os
 import glob
@@ -8,7 +7,7 @@ import sys
 import time
 import replace
 from xlsxwriter import Workbook
-
+import pandas as pd
 
 def isValid(s: str) -> bool:
         check_dic = {
@@ -238,10 +237,11 @@ def read_json(path):
 if __name__ == '__main__':        
     id_lst = ['A00001054', 'A00001520', 'A00001595', 'A00003133', 'A00003134', 'A00004422', 'A00004694', 'A00005011', 'A00010454', 'A00012323', 'A00011779', 'A00011803',  'A00012427', 'A00003302', 'A00013798', 'A00004764']
 
-    data_saves = 'data_save\*.json'
+    data_saves = 'data_save\\g_*.json'
     # data_saves = [f'data_save\{id}.json' for id in id_lst]
-    x = glob.glob(data_saves)
+    data = glob.glob(data_saves)
     # x = data_saves    
+    l = []               
     data_list = []
     # ordered_list = ["옵션1", "옵션2", "옵션3", "전화 첫단", "전화 중간", "전화 마지막", "수령자", "도로명주소", "상세주소"]
     ordered_list = ["옵션1", "옵션2", "vendor_id", '전화 첫단', '전화 중간', '전화 마지막', '수령자', "도로명 주소", "상세주소"]
@@ -253,19 +253,25 @@ if __name__ == '__main__':
         ws.write(first_row,col,header)
 
     row = 1
-    # sys.stdout = open('result.txt', 'w')
-    for i, d in enumerate(x):
-        # if i < 20000:
-        #     continue
-        # elif i > 30000:
+    # # sys.stdout = open('result.txt', 'w')
+    for i, d in enumerate(data):
+        # f = d.replace('data_save\\', '')        
+        # try:
+        #     f_r = re.match(r'A[0-9]+',f).group()
+        # except:
+        #     print(i)
         #     break
+        if i < 20000:
+            continue
+        elif i > 30000:
+            break
         data = read_json(d)        
         print('-------------------------')
-        # for key in data:
-        #     col = ordered_list.index(key)
-        #     ws.write(row, col, data[key])
-        # row += 1
+        for key in data:
+            col = ordered_list.index(key)
+            ws.write(row, col, data[key])
+        row += 1
         time.sleep(1)
-        # data_list.append(data)        
-    # wb.close()
+        data_list.append(data)        
+    wb.close()
     # sys.stdout.close()    

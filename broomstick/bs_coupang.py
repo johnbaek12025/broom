@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup as bf
 import json
 import numpy
-from broomstick.data_manager import DataHandler, DetailInfo
+from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
 logger = logging.getLogger(__name__)
@@ -57,12 +57,11 @@ class BroomstickCoupang(object):
                 vendor_nums = [i for i in range(1, self.limit)]
         else:
             vendor_nums = [i for i in range(1, self.limit)]
-        # vendor_nums = [1117]
+        # vendor_nums = [516350]
         data = dict()        
         for n in vendor_nums:
             vendor_id = f"A{str(n).zfill(8)}" 
-            print(vendor_id)
-            self.handler.save_current(None, vendor_id)
+            print(vendor_id)            
             vendor_url = self.vendor_url.format(vendor_id=vendor_id, page_num='1')
             products_info = self.status_validation(vendor_url, _name)
             if not products_info:
@@ -82,6 +81,7 @@ class BroomstickCoupang(object):
             }
             
             self.handler.data_save(**data)
+            self.handler.save_current(None, vendor_id)
 
     def set_product_info_for_vendor(self, products):
         p_info = dict()
@@ -191,7 +191,11 @@ class BroomstickCoupang(object):
         _name = "status_validation"
         logger.info(f"{_name} started")
         time.sleep(random.choice(self.wtime))
-        res = self.session.get(url)
+        try:
+            res = self.session.get(url)
+        except:
+            time.sleep(5)
+            res = self.session.get(url)
         status = res.status_code
         if status == 200:            
             try:                

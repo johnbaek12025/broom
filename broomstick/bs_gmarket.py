@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup as bf
 import json
 import numpy
-from broomstick import settings
-from broomstick.data_manager import DataHandler, DetailInfo
+from broomstick.utility import settings
+from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class BroomstickGmarket(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_gmarket').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids()
-        self.seller_ids = {'ghs'}
+        # self.seller_ids = {'milktminishop'}
         self.seller_url = config_dict.get('broomstick_gmarket').get('seller_url')
         self.product_url = config_dict.get('broomstick_gmarket').get('product_url')
         self.review_url = config_dict.get('broomstick_gmarket').get('review_url')
@@ -73,61 +73,85 @@ class BroomstickGmarket(object):
             if len(self.here) < len(self.seller_ids):
                 self.seller_ids = self.seller_ids - self.here           
         for id in self.seller_ids:
-            print(id)
-            data = dict()
-            self.here.add(id)
-            self.handler.save_current(self.file_name, self.here)
-            store_url = self.seller_url.format(seller_id=id)
-            store_info = self.status_validation(store_url, _name)
-            if not store_info:
+
+            check = self.get_collecting_data(id)
+            if not check:
                 continue
-            seller_info = self.bring_seller_info(id, store_info)            
-            if not seller_info:
-                continue
-            product_url = self.product_url.format(seller_id=id)            
-            product_links = self.collect_products_link(product_url)
-            if not product_links:
-                product_links = self.collect_products_link_table(product_url)                
-                if not product_links:
-                    data[f"g_{id}"] = {
-                        "seller_info": seller_info,
-                        "products_info": {}
-                    }                          
-                    self.handler.data_save(**data)
-            products_info = self.collect_products_info(id, product_links)            
+
+    def get_collecting_data(self, id):
+        _name = 'main'
+        print(id)
+        self.here.add(id)
+        data = dict()            
+        store_url = self.seller_url.format(seller_id=id)
+        store_info = self.status_validation(store_url, _name)
+        if not store_info:
+            return False
+        seller_info = self.bring_seller_info(id, store_info)            
+        if not seller_info:
+            return False
+        product_url = self.product_url.format(seller_id=id)            
+        product_links = self.collect_products_link(product_url)            
+        if not product_links:
+            product_links = self.collect_products_link_table(product_url)       
+        if not product_links:
             data[f"g_{id}"] = {
                 "seller_info": seller_info,
-                "products_info": products_info
-            }                             
+                "products_info": {}
+            }                          
             self.handler.data_save(**data)
+            return False
+        products_info = self.collect_products_info(id, product_links)            
+        data[f"g_{id}"] = {
+            "seller_info": seller_info,
+            "products_info": products_info
+        }                             
+        self.handler.data_save(**data)            
+        self.handler.save_current(self.file_name, self.here)
 
     def bring_seller_info(self, id, info):
         _name = "bring_seller_info"
         seller_info = {"seller_id": id}
         data = bf(info, 'html.parser')
+        product_count = self.bring_total_products_count(data)
         div = data.find('div', {'class': 'seller_info_box'})
+        if not div:
+            return None
         info = div.find_all('dd')
         if not info:
-            return None
+            return None  
         seller_info['represent_name'] = info[0].text
         seller_info['representative_name'] = info[1].text
         seller_info['call_number'] = info[2].text
         seller_info['email'] = info[-3].text
         seller_info['business_registration_number'] = info[-2].text
-        seller_info['address'] = info[-1].text
+        seller_info['address'] = info[-1].text        
+        seller_info['product_count'] = product_count
         return seller_info
+
+    def bring_total_products_count(self, data):
+        li_tags = data.find_all("li", {"class": "splt_ico"})        
+        product_num = 0
+        for li in li_tags:
+            product_num_text = li.find("span", {"class": "data_num"})            
+            if product_num_text:
+                product_num += int(re.sub('[^0-9]+', '', product_num_text.text))
+            else:
+                product_num += 0
+        return product_num
 
     def collect_products_link(self, url):
         _name = "bring_seller_info"
-        info = self.status_validation(url, _name)
+        info = self.status_validation(url, _name)        
         data = bf(info, 'html.parser')
         for i in range(1, 4):
             ul = data.find('ul', {'class': f'type{i}'})      
             if ul:
-                break
+                break        
         if not ul:
             return None
-        li = ul.find_all('li', {'class': 'normal'})
+        for attr in [{'class': 'normal'}, None]:
+            li = ul.find_all('li', attr)        
         p_links = []
         for l in li:
             if len(p_links) == 10:
@@ -141,10 +165,12 @@ class BroomstickGmarket(object):
         return p_links
 
     def collect_products_link_table(self, url):
-        _name = "collect_products_link_table"
-        info = self.status_validation(url, _name)
+        _name = "collect_products_link_table"        
+        info = self.status_validation(url, _name)        
         data = bf(info, 'html.parser')        
         table_tag = data.find('table', {'class': 'type_tb'})
+        if not table_tag:
+            return None
         tr_tags = table_tag.find_all('tr')
         p_links = []
         for tr in tr_tags:
@@ -167,9 +193,9 @@ class BroomstickGmarket(object):
         _name = "collect_products_info"
         products = []
         for l in links:
-            print(l)
+            # print(l)
             product_id = re.search('\d+', l).group()            
-            info = self.status_validation(l, _name)
+            info = self.status_validation(l, _name)            
             data = bf(info, 'html.parser')
             origin_price = data.find('span', {"class": "price_original"})
             if origin_price:
@@ -190,10 +216,10 @@ class BroomstickGmarket(object):
             products.append({
                 "id": product_id,
                 'name': product_name,
-                "origin_price": origin_price,
-                "discounted_sale_price": sale_price,
+                "origin_price": int(origin_price) if origin_price else 0,
+                "discounted_sale_price": int(sale_price) if len(sale_price) > 1 else 0,
                 "representative_image_url": img,
-                "review_count": review_count,
+                "total_review_count": int(review_count),
                 "seller": seller_id,
                 "category": last_code,
                 "category_info": categories,
@@ -228,9 +254,13 @@ class BroomstickGmarket(object):
     def status_validation(self, url, func_name, post_data=None):
         _name = "status_validation"
         logger.info(f"{_name} started")
-        time.sleep(random.choice(self.wtime))
+        time.sleep(random.choice(self.wtime))        
         if not post_data:            
-            res = self.session.get(url)            
+            try:
+                res = self.session.get(url)
+            except:
+                time.sleep(2)
+                res = self.session.get(url)
         else:
             res = self.session.post(url, data=post_data)
 

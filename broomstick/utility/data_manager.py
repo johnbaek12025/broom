@@ -58,7 +58,7 @@ class DataHandler:
     def read_current(self, file_name=None):
         if not file_name:
             file_name = 'current'
-        with open(f"../data_save/{file_name}", "r") as file:
+        with open(f"../data_save/{file_name}", "r", encoding='utf-8') as file:
             x = file.read()
         return eval(x)
 

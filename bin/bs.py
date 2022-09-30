@@ -9,18 +9,18 @@ import os
 import sys
 import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from broomstick import settings
+from broomstick.utility import settings
 
 
 import warnings
 
 if __name__ == '__main__':
     usage = """%prog [options]"""
-    parser = optparse.OptionParser(usage=usage, description=__doc__)
+    parser = optparse.OptionParser(usage=usage, description=__doc__)    
     parser.add_option("--content", metavar="CONTENT", dest="content",
-                      help="content name")
+                      help="content name")    
     settings.add_basic_options(parser)
-    (options, args) = parser.parse_args()    
+    (options, args) = parser.parse_args()        
     config_dict = settings.read_config_file(options.config_file)        
     config_dict['app_name'] = __appname__
     log_dict = config_dict.get('log', {})
