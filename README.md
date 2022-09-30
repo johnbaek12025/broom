@@ -10,9 +10,9 @@ crawling coupang, gmarket, auction
 https://git-scm.com/
 ```
 
-2. skm 프로그램 설치
+2. broomstick 프로그램 설치
 ```
-git clone https://github.com/johnbaek12025/naver_trend_value.git
+git clone https://github.com/johnbaek12025/broomstick
 ```
 
 3. Python 3.8 설치
@@ -41,7 +41,7 @@ when stoping this application while is being executed.
 ```
 8. 실행
 ```
-# 옵션 파일이 broomstick/cfg 아래에 위치하고, 리포트 이름이 broomstick 일 경우
+# 옵션 파일이 broomstick/cfg 아래에 위치하고, 콘텐츠 이름이 coupang 일 경우
 cd bin
-../bin/python bs.py --content=broomstick --config=../cfg/bs_config.cfg
+../bin/python bs.py --content=coupang --config=../cfg/bs_config.cfg
 ```
