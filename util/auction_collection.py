@@ -68,7 +68,7 @@ def bring_seller_links(link: str):
             info = res.text
         if '소비자보호를 위한 오픈마켓 자율준수 규약' in info:
             print('-----------------------------------')
-            return False
+            return links
         data = bf(info, 'html.parser')
         cate_a = data.find_all('a', {'class': 'link--shop'}, href=True)        
         for a in cate_a:
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         used_cates = eval(f.read())
 
     seller_links = set()
-    with open('./a_seller_links') as f:
+    with open('./a_seller_links', encoding='utf-8') as f:
         seller_links = eval(f.read())
 
     for c in cates:
@@ -129,9 +129,12 @@ if __name__ == '__main__':
             link = bring_seller_links(c)
         except ChunkedEncodingError:
             link = bring_seller_links(c)
-        if not link:
+        # if not link:
+        #     print('ip 차단')
+        if c in used_cates:
             continue
         seller_links = seller_links | link
         used_cates.append(c)        
         save_file(used_cates, "used_cates")
         save_file(seller_links, "a_seller_links")
+

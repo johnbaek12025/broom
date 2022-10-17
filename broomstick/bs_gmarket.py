@@ -9,6 +9,7 @@ from broomstick.utility import settings
 from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
+import ast
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +62,7 @@ class BroomstickGmarket(object):
     def bring_seller_ids(self):
         with open(self.seller_ids_file, encoding='utf-8') as file:
             sellers = file.read()
-            sellers = eval(sellers)
+            sellers = ast.literal_eval(sellers)
         return sellers
 
     def main(self):        

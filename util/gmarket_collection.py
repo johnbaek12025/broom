@@ -39,6 +39,9 @@ def collect_sellers(cate_links):
         time.sleep(2)
         res = requests.get(cate_links, headers=headers)    
     info = res.text
+    if not info:
+        print('-----------------------------------')
+        return link
     data = bf(info, 'html.parser')    
     cate_a = data.find_all('a', {'class': 'link__shop'}, href=True)   
     for a in cate_a:
@@ -133,9 +136,8 @@ with open('./g_finished_links') as f:
 
 seller_links = set()
 
-with open('./g_seller_links') as f:
+with open('./g_seller_links', encoding='cp949') as f:
     seller_links = eval(f.read())
-
 
 for i, cate in enumerate(last_cates):
     print(cate)    
@@ -144,10 +146,13 @@ for i, cate in enumerate(last_cates):
         if link in finished_links:
             continue
         # switchIp2()
-        links = collect_sellers(link)                    
+        links = collect_sellers(link)
+        # if not links:
+        #     print('ip 차단')
+        #     break                   
         seller_links = seller_links|links
         save_file('g_seller_links', seller_links)        
-        finished_links.append(link)
-        save_file("g_finished_links", finished_links)
+    finished_links.append(cate)
+    save_file("g_finished_links", finished_links)
 
     
