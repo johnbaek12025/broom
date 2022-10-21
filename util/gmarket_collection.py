@@ -36,7 +36,7 @@ def collect_sellers(cate_links):
     try:
         res = requests.get(cate_links, headers=headers)    
     except:
-        time.sleep(2)
+        time.sleep(5)
         res = requests.get(cate_links, headers=headers)    
     info = res.text
     if not info:

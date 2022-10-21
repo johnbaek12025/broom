@@ -218,3 +218,17 @@ def to_bool(x):
     except (ValueError, TypeError):
         pass
     raise ValueError("Unknown boolean specifier: '%s'." % x)
+
+
+class ControlDict:
+    def __init__(self):
+        self.data = {}
+
+    def add(self, key, val):
+        city_set = self.data.setdefault(key, set())
+        city_set.add(val)
+    
+    def append(self, key, val):
+        city_set = self.data.setdefault(key, list())
+        city_set.append(val)
+    

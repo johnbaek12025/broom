@@ -194,7 +194,7 @@ class BroomstickCoupang(object):
         try:
             res = self.session.get(url)
         except:
-            time.sleep(5)
+            time.sleep(8)
             res = self.session.get(url)
         status = res.status_code
         if status == 200:            
