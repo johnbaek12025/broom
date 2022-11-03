@@ -14,7 +14,22 @@ import sys
 
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
+from functools import wraps
+
+
+
 logger = logging.getLogger(__name__)
+
+
+
+def trace(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):        
+        result = func(*args, **kwargs)
+        logger.info(f'{func.__name__}({args!r}, {kwargs!r})')
+        return result
+    return wrapper
+
 
 def list_chunk(lst, n):
     return [lst[i:i+n] for i in range(0, len(lst), n)]
@@ -231,4 +246,26 @@ class ControlDict:
     def append(self, key, val):
         city_set = self.data.setdefault(key, list())
         city_set.append(val)
-    
+
+
+from collections import defaultdict
+
+class DictSet:
+    def __init__(self):
+        self.data = defaultdict(set)
+
+    def add(self, key, val):
+        self.data[key].add(val)
+
+"""
+class Pictures(dict):
+    def __missing__(self, key):
+        value = open_picture(key)
+        self[key] = value
+        return value
+
+pictures = Pictures()
+handle = pictures[path]
+handle.seek(0)
+image_data = handle.read()
+"""

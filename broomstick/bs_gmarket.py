@@ -10,6 +10,8 @@ from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
 import ast
+from .utility.settings import trace
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +28,7 @@ class BroomstickGmarket(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_gmarket').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids()
-        # self.seller_ids = {'milktminishop'}
+        # self.seller_ids = {'dcpang1386648768'}
         self.seller_url = config_dict.get('broomstick_gmarket').get('seller_url')
         self.product_url = config_dict.get('broomstick_gmarket').get('product_url')
         self.review_url = config_dict.get('broomstick_gmarket').get('review_url')
@@ -78,10 +80,10 @@ class BroomstickGmarket(object):
             check = self.get_collecting_data(id)
             if not check:
                 continue
-
+    
+    @trace
     def get_collecting_data(self, id):
         _name = 'main'
-        print(id)
         self.here.add(id)
         data = dict()            
         store_url = self.seller_url.format(seller_id=id)
@@ -130,6 +132,7 @@ class BroomstickGmarket(object):
         seller_info['product_count'] = product_count
         return seller_info
 
+
     def bring_total_products_count(self, data):
         li_tags = data.find_all("li", {"class": "splt_ico"})        
         product_num = 0
@@ -140,6 +143,7 @@ class BroomstickGmarket(object):
             else:
                 product_num += 0
         return product_num
+
 
     def collect_products_link(self, url):
         _name = "bring_seller_info"
@@ -226,7 +230,7 @@ class BroomstickGmarket(object):
                 "category_info": categories,
             })  
         return products
-        
+    
     def set_review(self, product_id):
         _name = 'set_review'
         post_data = {'goodsCode': product_id}
@@ -238,7 +242,7 @@ class BroomstickGmarket(object):
             num = re.sub('[^0-9]+','',t.text)
             review_count += int(num)
         return review_count
-
+    
     def set_category(self, data):
         name_num = ['first_category', 'second_category', 'third_category', 'fourth_category', 'fifth_category']
         code_num = ['first_category_code', 'second_category_code', 'third_category_code', 'fourth_category_code', 'fifth_category_code']
@@ -252,6 +256,7 @@ class BroomstickGmarket(object):
             category[code_num[i]] = int(code)
         return category
 
+    @trace
     def status_validation(self, url, func_name, post_data=None):
         _name = "status_validation"
         logger.info(f"{_name} started")

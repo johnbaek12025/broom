@@ -11,8 +11,13 @@ from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
 import ast
+from .utility.settings import trace
 
 logger = logging.getLogger(__name__)
+
+
+
+
 
 
 class BroomstickAuction(object):
@@ -22,7 +27,7 @@ class BroomstickAuction(object):
                 }
         self.seller_ids_file = config_dict.get('broomstick_auction').get('cate_url_file')
         self.seller_ids = self.bring_seller_ids() 
-        # self.seller_ids = {'ALJALDDAG'}
+        # self.seller_ids = {'hanafishing'}
         self.seller_url = config_dict.get('broomstick_auction').get('seller_url')
         self.product_url = config_dict.get('broomstick_auction').get('product_url')
         self.session = None
@@ -30,7 +35,7 @@ class BroomstickAuction(object):
         self.file_name = 'there'
         self.handler = DataHandler()
         self.there = set()
-
+    
     def main(self):
         _name = 'main'
         self.session = self.set_session()
@@ -44,11 +49,11 @@ class BroomstickAuction(object):
             check = self.get_collecting_data(id)
             if not check:
                 continue
-
+    
+    @trace
     def get_collecting_data(self, id):
         _name = 'get_collecting_data'
         data = dict()
-        print(id)
         self.there.add(id)           
         store_url = self.seller_url.format(seller_id=id)
         store_info = self.status_validation(store_url, _name)                       

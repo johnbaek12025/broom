@@ -7,6 +7,8 @@ import numpy
 from broomstick.utility.data_manager import DataHandler, DetailInfo
 import re
 import logging
+from utility.settings import trace
+
 logger = logging.getLogger(__name__)
 
 
